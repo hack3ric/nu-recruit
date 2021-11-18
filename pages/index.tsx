@@ -1,8 +1,8 @@
 import type { NextPage } from 'next';
-import { Link, SelectChangeEvent, TextField } from "@mui/material";
+import { Link, TextField } from "@mui/material";
 import { CssBaseline, Container, Box, Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import React, { useState } from "react";
-import { getFormLabelUtilityClasses } from "@material-ui/core";
+import { useSnackbar } from "notistack";
 
 const idRegex = /^\d{13}$/;
 const emailRegex = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/;
@@ -15,6 +15,8 @@ type Form = {
 }
 
 const Home: NextPage = () => {
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
   const [form, setForm] = useState<Form>({
     name: "",
     id: "",
@@ -56,14 +58,28 @@ const Home: NextPage = () => {
     
     setFormError(newFormError);
     for (let [_, b] of Object.entries(newFormError)) {
-      if (b) return;
+      if (b) {
+        enqueueSnackbar("请使用正确的格式填写所有项", { variant: "error" });
+        return;
+      }
     }
-    const response = await fetch("/api/hello", { method: "POST", body: JSON.stringify(form) });
-    
-    let apps: Form[] = JSON.parse(localStorage.getItem("id-" + form.id) || "[]");
-    apps.push(form);
-    localStorage.setItem("id-" + form.id, JSON.stringify(apps));
-    console.log(await response.json());
+
+    // for type check
+    if (!file) return;
+
+    let multipart = new FormData();
+    multipart.append("basic", JSON.stringify(form));
+    multipart.append("resume", file);
+
+    const response = await fetch("/api/upload", { method: "POST", body: multipart });
+    if (response.status === 200) {
+      enqueueSnackbar("上传成功", { variant: "success" });
+      let apps: Form[] = JSON.parse(localStorage.getItem("id-" + form.id) || "[]");
+      apps.push(form);
+      localStorage.setItem("id-" + form.id, JSON.stringify(apps));
+    } else {
+      enqueueSnackbar("上传出现错误", { variant: "error" });
+    }
   }
 
   return (
@@ -109,14 +125,13 @@ const Home: NextPage = () => {
             />
           </Grid>
           <Grid item xs={6} md={6}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={formError.orientation}>
               <InputLabel id="orientation">报名方向</InputLabel>
               <Select
                 labelId="orientation"
                 name="orientation"
                 label="报名方向"
                 value={form.orientation}
-                error={formError.orientation}
                 onChange={handleInputChange}
               >
                 <MenuItem value="frontend">前端</MenuItem>
@@ -127,12 +142,12 @@ const Home: NextPage = () => {
           </Grid>
         </Grid>
         <Box display="flex" marginBottom={3} alignItems="center">
-          <Button component="label" variant="outlined" size="large" sx={{ flexShrink: 0 }}>
+          <Button component="label" variant="outlined" size="large" sx={{ flexShrink: 0 }} color={formError.file ? "error" : "primary"}>
             添加简历
             <input type="file" name="file" hidden onChange={handleFileChange} />
           </Button>
           <div style={{ width: 16, flexShrink: 0 }}></div>
-          <Typography component="span" flexGrow={1} textOverflow="ellipsis" whiteSpace="nowrap" overflow="hidden">
+          <Typography component="span" flexGrow={1} textOverflow="ellipsis" whiteSpace="nowrap" overflow="hidden" color={formError.file ? "error" : "text"}>
             {formError.file ? "请添加一份简历" : file?.name}
           </Typography>
           <div style={{ width: 16, flexShrink: 0 }}></div>
