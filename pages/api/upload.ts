@@ -1,7 +1,8 @@
-// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import multer from "multer";
 import { createTransport } from "nodemailer";
+import fs from "fs";
+import { URLSearchParams } from "url";
 
 type Data = {};
 
@@ -11,11 +12,8 @@ let upload = multer({
   }
 })
 
-let transporter = createTransport({
-  sendmail: true,
-  newline: 'unix',
-  // path: '/usr/sbin/sendmail'
-});
+let { transport, fromEmail, toEmail } = JSON.parse(fs.readFileSync("config.json").toString());
+let transporter = createTransport(transport);
 
 function runMiddleware(
   req: NextApiRequest,
@@ -27,7 +25,6 @@ function runMiddleware(
       if (result instanceof Error) {
         return reject(result)
       }
-
       return resolve(result)
     })
   })
@@ -40,28 +37,28 @@ export default async function handler(
   await runMiddleware(req, res, upload.single("resume"));
   let form = JSON.parse(req.body["basic"]);
   let resume = req.file;
-  transporter.sendMail({
-    // TODO: Use configuration
-    from: "sender@example.com",
-    to: "recipient@example.com",
-    subject: `nu-recruit:${form.id};${form.name};${form.email};${form.orientation}`,
+
+  let params = new URLSearchParams();
+  for (let [k, v] of Object.entries(form as { [name: string]: string })) {
+    params.append(k, v)
+  }
+
+  let t = await transporter.sendMail({
+    from: fromEmail,
+    to: toEmail,
+    subject: `nu-recruit?${params.toString()}`,
     attachments: [{
       filename: resume.originalname,
       encoding: resume.encoding,
       content: resume.buffer
     }]
-  }, (err, info) => {
-    console.log(err);
-    console.log(info.envelope);
-    console.log(info.messageId);
-    console.log(info.response);
-    // info.message.pipe(process.stdout);
   });
-  res.status(200).json({});
+  console.log(t);
+  res.status(200).json({})
 }
 
 export const config = {
   api: {
     bodyParser: false,
-  },
+  }
 }

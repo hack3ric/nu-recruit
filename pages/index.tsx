@@ -1,5 +1,5 @@
 import type { NextPage } from 'next';
-import { Link, TextField } from "@mui/material";
+import { AppBar, Link, styled, TextField, Toolbar } from "@mui/material";
 import { CssBaseline, Container, Box, Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import React, { useState } from "react";
 import { useSnackbar } from "notistack";
@@ -45,6 +45,7 @@ const Home: NextPage = () => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
     setFormError({ ...formError, [name]: false });
+    closeSnackbar();
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -59,7 +60,7 @@ const Home: NextPage = () => {
     setFormError(newFormError);
     for (let [_, b] of Object.entries(newFormError)) {
       if (b) {
-        enqueueSnackbar("请使用正确的格式填写所有项", { variant: "error" });
+        enqueueSnackbar("请使用正确的格式填写所有项。", { variant: "error" });
         return;
       }
     }
@@ -78,16 +79,31 @@ const Home: NextPage = () => {
       apps.push(form);
       localStorage.setItem("id-" + form.id, JSON.stringify(apps));
     } else {
-      enqueueSnackbar("上传出现错误", { variant: "error" });
+      enqueueSnackbar("上传出现错误", {
+        variant: "error",
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'center',
+        }
+      });
     }
   }
 
-  return (
-    <Container maxWidth="md" sx={{ paddingTop: 2 }}>
-      <CssBaseline />
+  // const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+  //   alignItems: 'flex-start',
+  //   paddingTop: theme.spacing(1),
+  //   paddingBottom: theme.spacing(2),
+  //   // Override media queries injected by theme.mixins.toolbar
+  //   '@media all': {
+  //     minHeight: 128,
+  //   },
+  // }));
 
-      <Typography variant="h2">NetUnion 招新</Typography>
-      <Typography marginBottom={3}>请填写报名表。若已填写，可点击<Link href="">此处</Link>查询。</Typography>
+  return <>
+    <Container maxWidth="md" sx={{ paddingTop: 2 }}>
+      <Typography marginBottom={0}>NetUnion 是电子科技大学网管会。</Typography>
+      <Typography fontSize="2px" marginBottom={2}>招新群里并没有 NU 的信息（</Typography>
+      <Typography marginBottom={3}>请填写报名表。若已填写，可点击<Link href="/query">此处</Link>查询。</Typography>
 
       <form onSubmit={handleSubmit}>
         <Grid marginBottom={3} container alignItems="center" spacing={2}>
@@ -155,7 +171,7 @@ const Home: NextPage = () => {
         </Box>
       </form>
     </Container>
-  );
+  </>;
 };
 
 export default Home;
