@@ -89,18 +89,9 @@ const Home: NextPage = () => {
     }
   }
 
-  // const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-  //   alignItems: 'flex-start',
-  //   paddingTop: theme.spacing(1),
-  //   paddingBottom: theme.spacing(2),
-  //   // Override media queries injected by theme.mixins.toolbar
-  //   '@media all': {
-  //     minHeight: 128,
-  //   },
-  // }));
-
   return <>
     <Container maxWidth="md" sx={{ paddingTop: 2 }}>
+      <Typography variant="h6" marginBottom={2}>欢迎来到 NetUnion</Typography>
       <Typography marginBottom={0}>NetUnion 是电子科技大学网管会。</Typography>
       <Typography fontSize="2px" marginBottom={2}>招新群里并没有 NU 的信息（</Typography>
       <Typography marginBottom={3}>请填写报名表。若已填写，可点击<Link href="/query">此处</Link>查询。</Typography>

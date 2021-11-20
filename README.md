@@ -4,19 +4,30 @@ My entry to 2021 UESTC NetUnion recruit.
 
 ## Prerequisition
 
-- Sendmail properly set up (I still haven't figure it out, but it should work just fine if you do so)
+- Sendmail or an SMTP server
 - Node.js v16
 
 ## Getting Started
 
-First, set up your email addresses in `.env`:
-```env
-FROM_EMAIL=foo@example.com
-TO_EMAIL=bar@example.com
+First, set up your email environment in `config.json`, for example Sendmail:
+```json
+{
+  "transport": {
+    "sendmail": true,
+    "newline": "unix",
+    "path": "/usr/sbin/sendmail"
+  },
+  "fromEmail": null,
+  "toEmail": "recipient@example.com"
+}
 ```
+
+For more information about field `transport`, see [SMTP transport](https://nodemailer.com/smtp/) and [Other transports](https://nodemailer.com/transports/) section of Nodemailer documentation.
 
 And then, build and run:
 ```
 npm run build
 npm start
 ```
+
+You may need a reverse proxy instead of directly serving it to the Internet.
