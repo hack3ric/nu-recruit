@@ -55,8 +55,13 @@ const Home: NextPage = () => {
     if (!idRegex.test(form.id)) newFormError.id = true;
     if (!emailRegex.test(form.email)) newFormError.email = true;
     if (form.orientation.length === 0) newFormError.orientation = true;
-    if (!file) newFormError.file = true;
-    
+    if (!file) {
+      newFormError.file = true
+    } else {
+      let fileSegments = file.name.split(".");
+      let extension = fileSegments[fileSegments.length - 1];
+      if (!["md", "docx", "pdf", "doc"].includes(extension)) newFormError.file = true;
+    }
     setFormError(newFormError);
     for (let [_, b] of Object.entries(newFormError)) {
       if (b) {
